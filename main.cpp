@@ -5,12 +5,14 @@
 //3RD
 #include <SFML/Graphics.hpp>
 
+//Bug: so much subdivision that there is no space to store points, so they get deleted. need to set max depth and stop subdividing at that point;
+
 class Point : public sf::Drawable
 {
 public:
     Point(float posX, float posY, float rad = 8)
-        : x(posX - rad)
-        , y(posY - rad)
+        : x(posX)
+        , y(posY)
         , radius(rad)
     {
 
@@ -32,7 +34,7 @@ public:
 private:
 };
 
-class Node : public sf::Drawable
+class Node
 {
 public:
     Node(sf::FloatRect boundary, unsigned maxPoints)
@@ -46,45 +48,124 @@ public:
 
     }
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override
+    ~Node()
+    {
+        delete m_NW;
+        delete m_NE;
+        delete m_SE;
+        delete m_SW;
+    }
+
+    void drawBoundaries(sf::RenderTarget& target, sf::RenderStates states) const
     {
         sf::RectangleShape shape(sf::Vector2f(m_boundary.width, m_boundary.height));
+        shape.setPosition(m_boundary.left, m_boundary.top);
         shape.setOutlineThickness(-1);
         shape.setOutlineColor(sf::Color::Black);
         target.draw(shape, states);
 
-        for (Point& p : m_points)
+        if (m_NW)
+        {
+            m_NW->drawBoundaries(target, states);
+        }
+
+        if (m_NE)
+        {
+            m_NE->drawBoundaries(target, states);
+        }
+
+        if (m_SE)
+        {
+            m_SE->drawBoundaries(target, states);
+        }
+
+        if (m_SW)
+        {
+            m_SW->drawBoundaries(target, states);
+        }
+    }
+
+    void drawPoints(sf::RenderTarget& target, sf::RenderStates states) const
+    {
+        for (const Point& p : m_points)
         {
             target.draw(p, states);
         }
 
         if (m_NW)
         {
-            target.draw(*m_NW, states);
+            m_NW->drawPoints(target, states);
         }
 
         if (m_NE)
         {
-            target.draw(*m_NE, states);
+            m_NE->drawPoints(target, states);
         }
 
         if (m_SE)
         {
-            target.draw(*m_SE, states);
+            m_SE->drawPoints(target, states);
         }
 
         if (m_SW)
         {
-            target.draw(*m_SW, states);
+            m_SW->drawPoints(target, states);
         }
+    }
+
+    void subdivide()
+    {
+        m_NW = new Node(sf::FloatRect(m_boundary.left, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_NE = new Node(sf::FloatRect(m_boundary.left + m_boundary.width/2, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_SE = new Node(sf::FloatRect(m_boundary.left + m_boundary.width/2, m_boundary.top + m_boundary.height/2, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_SW = new Node(sf::FloatRect(m_boundary.left, m_boundary.top + m_boundary.height/2, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+
+        for (Point p : m_points)
+        {
+            m_NW->addPoint(p);
+            m_NE->addPoint(p);
+            m_SE->addPoint(p);
+            m_SW->addPoint(p);
+        }
+
+        m_points.clear();
+        m_maxPoints = 0;
     }
 
     bool addPoint(Point p)
     {
         if (m_boundary.contains(p.x, p.y))
         {
-            m_points.push_back(p);
-            return true;
+            if (m_points.size() < m_maxPoints)
+            {
+                m_points.push_back(p);
+                return true;
+            }
+
+            if (!m_NW)
+            {
+                subdivide();
+            }
+
+            if (m_NW && m_NW->addPoint(p))
+            {
+                return true;
+            }
+
+            if (m_NE && m_NE->addPoint(p))
+            {
+                return true;
+            }
+
+            if (m_SE && m_SE->addPoint(p))
+            {
+                return true;
+            }
+
+            if (m_SW && m_SW->addPoint(p))
+            {
+                return true;
+            }
         }
 
         return false;
@@ -92,8 +173,8 @@ public:
 
 private:
     sf::FloatRect m_boundary;
-    const unsigned m_maxPoints;
-    mutable std::vector<Point> m_points;
+    unsigned m_maxPoints;
+    std::vector<Point> m_points;
 
     Node* m_NW;
     Node* m_NE;
@@ -105,7 +186,7 @@ class QuadTree : public sf::Drawable
 {
 public:
     QuadTree()
-        : m_root(sf::FloatRect(0, 0, 800, 800), 4)
+        : m_root(sf::FloatRect(0, 0, 800, 800), 1)
     {
 
     }
@@ -117,7 +198,8 @@ public:
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
     {
-        target.draw(m_root, states);
+        m_root.drawBoundaries(target, states);
+        m_root.drawPoints(target, states);
     }
 
     bool addPoint(Point p)
@@ -147,9 +229,11 @@ int main()
             {
                 case sf::Event::MouseButtonPressed:
                 {
-                    Point p (event.mouseButton.x, event.mouseButton.y);
+                    Point p(event.mouseButton.x, event.mouseButton.y);
+                    p.x -= p.radius;
+                    p.y -= p.radius;
 
-                    std::cout << quadTree.addPoint(p) << "\n";
+                    quadTree.addPoint(p);
                 }
 
                 default:
@@ -165,7 +249,7 @@ int main()
         window.draw(quadTree);
         window.display();
 
-        std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
+        //std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
         prevFrameTime = frameClock.restart();
     }
 
