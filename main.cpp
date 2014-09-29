@@ -7,6 +7,10 @@
 
 //Bug: so much subdivision that there is no space to store points, so they get deleted. need to set max depth and stop subdividing at that point;
 
+class Point;
+class Node;
+class QuadTree;
+
 class Point : public sf::Drawable
 {
 public:
@@ -15,7 +19,6 @@ public:
         , y(posY)
         , radius(rad)
     {
-
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
@@ -27,25 +30,36 @@ public:
         target.draw(shape, states);
     }
 
+    void update(float dt)
+    {
+        x += 10 * dt;
+        y += 10 * dt;
+    }
+
     float x;
     float y;
     float radius;
 
 private:
+    unsigned m_angle;
 };
 
 class Node
 {
 public:
-    Node(sf::FloatRect boundary, unsigned maxPoints)
+    Node(Node* root, sf::FloatRect boundary, unsigned maxPoints)
         : m_boundary(boundary)
         , m_maxPoints(maxPoints)
+        , m_root(root)
         , m_NW(nullptr)
         , m_NE(nullptr)
         , m_SE(nullptr)
         , m_SW(nullptr)
     {
-
+        if (!m_root)
+        {
+            m_root = this;
+        }
     }
 
     ~Node()
@@ -113,12 +127,59 @@ public:
         }
     }
 
+    void update(float dt)
+    {
+        m_points.erase(
+            std::remove_if(
+                m_points.begin(),
+                m_points.end(),
+                [this, dt](Point& p)
+                {
+                    p.update(dt);
+
+                    if (!m_boundary.contains(p.x, p.y))
+                    {
+                        if (m_root)
+                        {
+                            m_root->addPoint(p);
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+            ),
+            m_points.end()
+        );
+
+        if (m_NW)
+        {
+            m_NW->update(dt);
+        }
+
+        if (m_NE)
+        {
+            m_NE->update(dt);
+        }
+
+        if (m_SE)
+        {
+            m_SE->update(dt);
+        }
+
+        if (m_SW)
+        {
+            m_SW->update(dt);
+        }
+    }
+
     void subdivide()
     {
-        m_NW = new Node(sf::FloatRect(m_boundary.left, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
-        m_NE = new Node(sf::FloatRect(m_boundary.left + m_boundary.width/2, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
-        m_SE = new Node(sf::FloatRect(m_boundary.left + m_boundary.width/2, m_boundary.top + m_boundary.height/2, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
-        m_SW = new Node(sf::FloatRect(m_boundary.left, m_boundary.top + m_boundary.height/2, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_NW = new Node(m_root, sf::FloatRect(m_boundary.left, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_NE = new Node(m_root, sf::FloatRect(m_boundary.left + m_boundary.width/2, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_SE = new Node(m_root, sf::FloatRect(m_boundary.left + m_boundary.width/2, m_boundary.top + m_boundary.height/2, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
+        m_SW = new Node(m_root, sf::FloatRect(m_boundary.left, m_boundary.top + m_boundary.height/2, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
 
         for (Point p : m_points)
         {
@@ -176,6 +237,7 @@ private:
     unsigned m_maxPoints;
     std::vector<Point> m_points;
 
+    Node* m_root;
     Node* m_NW;
     Node* m_NE;
     Node* m_SE;
@@ -186,14 +248,14 @@ class QuadTree : public sf::Drawable
 {
 public:
     QuadTree()
-        : m_root(sf::FloatRect(0, 0, 800, 800), 1)
+        : m_root(nullptr, sf::FloatRect(0, 0, 800, 800), 4)
     {
 
     }
 
     void update(float dt)
     {
-
+        m_root.update(dt);
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
