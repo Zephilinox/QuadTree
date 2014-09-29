@@ -64,10 +64,12 @@ public:
 
     ~Node()
     {
-        delete m_NW;
-        delete m_NE;
-        delete m_SE;
-        delete m_SW;
+        killChildren();
+
+        for (Point& p : m_points)
+        {
+            m_root->addPoint(p);
+        }
     }
 
     void drawBoundaries(sf::RenderTarget& target, sf::RenderStates states) const
@@ -129,6 +131,14 @@ public:
 
     void update(float dt)
     {
+        if (m_NW && m_NE && m_SE && m_SW)
+        {
+            if (m_NW->isUseless() && m_NE->isUseless() && m_SE->isUseless() && m_SW->isUseless())
+            {
+                killChildren();
+            }
+        }
+
         m_points.erase(
             std::remove_if(
                 m_points.begin(),
@@ -174,6 +184,11 @@ public:
         }
     }
 
+    bool isUseless()
+    {
+        return (m_maxPoints != 0 && m_points.size() == 0);
+    }
+
     void subdivide()
     {
         m_NW = new Node(m_root, sf::FloatRect(m_boundary.left, m_boundary.top, m_boundary.width/2, m_boundary.height/2), m_maxPoints);
@@ -191,6 +206,19 @@ public:
 
         m_points.clear();
         m_maxPoints = 0;
+    }
+
+    void killChildren()
+    {
+        delete m_NW;
+        delete m_NE;
+        delete m_SE;
+        delete m_SW;
+        m_NW = nullptr;
+        m_NE = nullptr;
+        m_SE = nullptr;
+        m_SW = nullptr;
+        m_maxPoints = 4;
     }
 
     bool addPoint(Point p)
@@ -289,6 +317,12 @@ int main()
         {
             switch(event.type)
             {
+                case sf::Event::Closed:
+                {
+                    window.close();
+                    break;
+                }
+
                 case sf::Event::MouseButtonPressed:
                 {
                     Point p(event.mouseButton.x, event.mouseButton.y);
@@ -311,7 +345,7 @@ int main()
         window.draw(quadTree);
         window.display();
 
-        //std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
+        std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
         prevFrameTime = frameClock.restart();
     }
 
