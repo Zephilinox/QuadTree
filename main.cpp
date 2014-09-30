@@ -65,11 +65,6 @@ public:
     ~Node()
     {
         killChildren();
-
-        for (Point& p : m_points)
-        {
-            m_root->addPoint(p);
-        }
     }
 
     void drawBoundaries(sf::RenderTarget& target, sf::RenderStates states) const
