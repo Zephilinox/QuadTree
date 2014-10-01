@@ -20,6 +20,7 @@ public:
 private:
     sf::Vector2f m_position;
     float m_radius;
+    sf::CircleShape m_shape;
 };
 
 #endif // ENTITY_HPP
