@@ -25,6 +25,8 @@ public:
     bool isUseless();
 
 private:
+    void subdivide();
+
     bool m_isLeaf;
 
     QuadTreeNode* m_rootNode;

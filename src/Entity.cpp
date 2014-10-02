@@ -29,3 +29,8 @@ void Entity::setRadius(float rad)
 {
 
 }
+
+sf::Vector2f Entity::getPosition()
+{
+    return m_position;
+}
