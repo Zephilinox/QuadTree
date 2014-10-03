@@ -1,13 +1,15 @@
 #include "Entity.hpp"
 
-Entity::Entity(float x, float y, float radius)
-    : m_position(x, y)
+Entity::Entity(sf::Vector2f pos, float radius)
+    : m_position(pos)
     , m_radius(radius)
     , m_shape(m_radius)
 {
+    m_shape.setOrigin(sf::Vector2f(radius, radius));
     m_shape.setPosition(m_position);
     m_shape.setOutlineThickness(1);
     m_shape.setOutlineColor(sf::Color::Black);
+    m_shape.setFillColor(sf::Color::Red);
 }
 
 void Entity::update(float dt)

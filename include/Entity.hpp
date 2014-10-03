@@ -11,7 +11,7 @@
 class Entity : public sf::Drawable
 {
 public:
-    Entity(float x, float y, float radius);
+    Entity(sf::Vector2f pos, float radius);
     void update(float dt);
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     void setPosition(sf::Vector2f pos);

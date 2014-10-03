@@ -13,11 +13,11 @@
 class QuadTreeNode
 {
 public:
-    QuadTreeNode();
+    QuadTreeNode(QuadTreeNode* rootNode, sf::FloatRect boundary, unsigned maxEnts);
     ~QuadTreeNode();
 
-    void drawBoundaries(sf::RenderTarget& target, sf::RenderStates states) const;
-    void drawEntities(sf::RenderTarget& target, sf::RenderStates states) const;
+    void drawBoundaries(sf::RenderTarget& target) const;
+    void drawEntities(sf::RenderTarget& target) const;
     void update(float dt);
 
     bool addEntity(Entity ent);
@@ -25,8 +25,15 @@ public:
     bool isUseless();
 
 private:
-    void subdivide();
+    void drawChildBoundaries(sf::RenderTarget& target) const;
+    void drawChildEntities(sf::RenderTarget& target) const;
 
+    void spawnChildren();
+    void killChildren();
+    bool areChildrenUseless();
+    bool giveEntitiesToChildren();
+
+    const unsigned m_maxEntities;
     bool m_isLeaf;
 
     QuadTreeNode* m_rootNode;
@@ -38,7 +45,6 @@ private:
 
     sf::RectangleShape m_shape;
     sf::FloatRect m_boundary;
-    const unsigned m_maxEntities;
     std::vector<Entity> m_entities;
 };
 

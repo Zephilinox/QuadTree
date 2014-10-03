@@ -5,6 +5,10 @@
 //3RD
 #include <SFML/Graphics.hpp>
 
+//SELF
+#include "Entity.hpp"
+#include "QuadTreeNode.hpp"
+
 //Bug: so much subdivision that there is no space to store points, so they get deleted. need to set max depth and stop subdividing at that point;
 
 class Point;
@@ -301,7 +305,8 @@ int main()
     sf::RenderWindow window(sf::VideoMode(800, 800, 32), "QuadTree");
     window.setVerticalSyncEnabled(true);
 
-    QuadTree quadTree;
+    //QuadTree quadTree;
+    QuadTreeNode quadTree(nullptr, sf::FloatRect(0, 0, 800, 800), 4);
 
     sf::Event event;
     sf::Time prevFrameTime(sf::seconds(1.f / 60.f));
@@ -320,11 +325,14 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    Point p(event.mouseButton.x, event.mouseButton.y);
+                    /*Point p(event.mouseButton.x, event.mouseButton.y);
                     p.x -= p.radius;
                     p.y -= p.radius;
 
-                    quadTree.addPoint(p);
+                    quadTree.addPoint(p);*/
+                    Entity e(sf::Vector2f(event.mouseButton.x, event.mouseButton.y), 8);
+                    quadTree.addEntity(e);
+                    std::cout << "\n\n";
                 }
 
                 default:
@@ -337,10 +345,12 @@ int main()
         quadTree.update(prevFrameTime.asSeconds());
 
         window.clear(sf::Color::Black);
-        window.draw(quadTree);
+        quadTree.drawBoundaries(window);
+        quadTree.drawEntities(window);
+        //window.draw(quadTree);
         window.display();
 
-        std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
+        //std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
         prevFrameTime = frameClock.restart();
     }
 
