@@ -49,22 +49,54 @@ void QuadTreeNode::update(float dt)
         killChildren();
     }
 
-    for (Entity& ent : m_entities)
+    /*for (Entity& ent : m_entities)
     {
         ent.update(dt);
+    }*/
+
+    m_entities.erase(
+        std::remove_if(
+            m_entities.begin(),
+            m_entities.end(),
+            [this, dt](Entity& e)
+            {
+                e.update(dt);
+
+                if (!m_boundary.contains(e.getPosition()))
+                {
+                    if (m_rootNode)
+                    {
+                        m_rootNode->addEntity(e);
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+        ),
+        m_entities.end()
+    );
+
+    if (!m_isLeaf)
+    {
+        m_topLeft->update(dt);
+        m_topRight->update(dt);
+        m_bottomLeft->update(dt);
+        m_bottomRight->update(dt);
     }
 }
 
 bool QuadTreeNode::addEntity(Entity ent)
 {
-    std::cout << "adding ent\n";
+    //std::cout << "adding ent\n";
     if (m_boundary.contains(ent.getPosition()))
     {
         if (m_isLeaf)
         {
             if (m_maxEntities > m_entities.size())
             {
-                std::cout << "ent added\n";
+                //std::cout << "ent added\n";
                 m_entities.push_back(ent);
                 return true;
             }
@@ -152,24 +184,20 @@ bool QuadTreeNode::areChildrenUseless()
     return m_topLeft->isUseless() && m_topRight->isUseless() && m_bottomLeft->isUseless() && m_bottomRight->isUseless();
 }
 
-bool QuadTreeNode::giveEntitiesToChildren()
+void QuadTreeNode::giveEntitiesToChildren()
 {
-    if (m_isLeaf) return false;
+    if (m_isLeaf) return;
 
-    for (Entity& ent : m_entities)
+    for (Entity ent : m_entities)
     {
-        std::cout << "adding ent to children\n";
-        if (!(m_topLeft->addEntity(ent) ||
-            m_topRight->addEntity(ent) ||
-            m_bottomLeft->addEntity(ent) ||
-            m_bottomRight->addEntity(ent)))
-        {
-            return false;
-        }
-        std::cout << "finished adding ent to children\n";
+        bool success = false;
+        success |= m_topLeft->addEntity(ent);
+        success |= m_topRight->addEntity(ent);
+        success |= m_bottomLeft->addEntity(ent);
+        success |= m_bottomRight->addEntity(ent);
+
+        std::cout << (success ? "Ent added to children\n" : "Failed to add ent to children\n");
     }
 
     m_entities.clear();
-
-    return true;
 }

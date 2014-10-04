@@ -305,7 +305,6 @@ int main()
     sf::RenderWindow window(sf::VideoMode(800, 800, 32), "QuadTree");
     window.setVerticalSyncEnabled(true);
 
-    //QuadTree quadTree;
     QuadTreeNode quadTree(nullptr, sf::FloatRect(0, 0, 800, 800), 4);
 
     sf::Event event;
@@ -325,14 +324,16 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    /*Point p(event.mouseButton.x, event.mouseButton.y);
-                    p.x -= p.radius;
-                    p.y -= p.radius;
-
-                    quadTree.addPoint(p);*/
                     Entity e(sf::Vector2f(event.mouseButton.x, event.mouseButton.y), 8);
                     quadTree.addEntity(e);
-                    std::cout << "\n\n";
+                }
+
+                case sf::Event::KeyPressed:
+                {
+                    if (event.key.code == sf::Keyboard::R)
+                    {
+                        quadTree.killChildren();
+                    }
                 }
 
                 default:

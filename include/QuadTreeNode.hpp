@@ -24,14 +24,14 @@ public:
 
     bool isUseless();
 
+    void killChildren();
 private:
     void drawChildBoundaries(sf::RenderTarget& target) const;
     void drawChildEntities(sf::RenderTarget& target) const;
 
     void spawnChildren();
-    void killChildren();
     bool areChildrenUseless();
-    bool giveEntitiesToChildren();
+    void giveEntitiesToChildren();
 
     const unsigned m_maxEntities;
     bool m_isLeaf;

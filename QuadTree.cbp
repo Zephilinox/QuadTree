@@ -49,9 +49,11 @@
 		</Linker>
 		<Unit filename="include/Entity.hpp" />
 		<Unit filename="include/QuadTreeNode.hpp" />
+		<Unit filename="include/ZGE/Vector.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/Entity.cpp" />
 		<Unit filename="src/QuadTreeNode.cpp" />
+		<Unit filename="src/ZGE/Vector.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

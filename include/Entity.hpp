@@ -5,6 +5,7 @@
 
 //3RD
 #include <SFML/Graphics.hpp>
+#include <ZGE/Vector.hpp>
 
 //SELF
 
@@ -20,8 +21,7 @@ public:
     sf::Vector2f getPosition();
 
 private:
-    sf::Vector2f m_position;
-    float m_radius;
+    zge::Vector m_velocity;
     sf::CircleShape m_shape;
 };
 
