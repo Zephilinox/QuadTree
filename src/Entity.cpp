@@ -12,9 +12,14 @@ Entity::Entity(sf::Vector2f pos, float radius)
     m_velocity = zge::Vector::degToVector(std::rand() % 360).normalized();
 }
 
+Entity::~Entity()
+{
+    std::cout << "Ent Died " << this << "\n";
+}
+
 void Entity::update(float dt)
 {
-    m_shape.move(m_velocity.x * 100 * dt, m_velocity.y * 100 * dt);
+    m_shape.move(m_velocity.x * 10 * dt, m_velocity.y * 10 * dt);
 }
 
 void Entity::draw(sf::RenderTarget& target, sf::RenderStates states) const

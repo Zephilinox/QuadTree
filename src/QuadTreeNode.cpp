@@ -49,34 +49,36 @@ void QuadTreeNode::update(float dt)
         killChildren();
     }
 
-    /*for (Entity& ent : m_entities)
+    for (Entity& ent : m_entities)
     {
         ent.update(dt);
-    }*/
+    }
 
-    m_entities.erase(
-        std::remove_if(
-            m_entities.begin(),
-            m_entities.end(),
-            [this, dt](Entity& e)
-            {
-                e.update(dt);
-
-                if (!m_boundary.contains(e.getPosition()))
+    if (m_isLeaf)
+    {
+        m_entities.erase(
+            std::remove_if(
+                m_entities.begin(),
+                m_entities.end(),
+                [this](Entity& e)
                 {
-                    if (m_rootNode)
+                    if (!m_boundary.contains(e.getPosition()))
                     {
-                        m_rootNode->addEntity(e);
+                        if (m_rootNode && m_rootNode != this)
+                        {
+                            std::cout << "Adding ent to root\n";
+                            m_rootNode->addEntity(e); //something wrong here
+                        }
+
+                        return true;
                     }
 
-                    return true;
+                    return false;
                 }
-
-                return false;
-            }
-        ),
-        m_entities.end()
-    );
+            ),
+            m_entities.end()
+        );
+    }
 
     if (!m_isLeaf)
     {
@@ -89,20 +91,22 @@ void QuadTreeNode::update(float dt)
 
 bool QuadTreeNode::addEntity(Entity ent)
 {
-    //std::cout << "adding ent\n";
+    std::cout << "Adding ent " << &ent << "\n";
+
+    //Crashes here; I will sort out how I store entities in the future to stop constructing and destructing them all the time, maybe that is the issue
     if (m_boundary.contains(ent.getPosition()))
     {
         if (m_isLeaf)
         {
             if (m_maxEntities > m_entities.size())
             {
-                //std::cout << "ent added\n";
+                std::cout << "Ent added " << &ent << "\n";
                 m_entities.push_back(ent);
                 return true;
             }
             else
             {
-                std::cout << "spawning children\n";
+                std::cout << "Spawning children\n";
                 spawnChildren();
             }
         }
