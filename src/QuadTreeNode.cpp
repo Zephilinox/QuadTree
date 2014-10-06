@@ -60,11 +60,11 @@ void QuadTreeNode::update(float dt)
             std::remove_if(
                 m_entities.begin(),
                 m_entities.end(),
-                [this](Entity& e)
+                [this](Entity& e) //Reference: ent is lost when adding to root; Value: crashes when adding to root
                 {
                     if (!m_boundary.contains(e.getPosition()))
                     {
-                        if (m_rootNode && m_rootNode != this)
+                        if (m_rootNode)
                         {
                             std::cout << "Adding ent to root\n";
                             m_rootNode->addEntity(e); //something wrong here
