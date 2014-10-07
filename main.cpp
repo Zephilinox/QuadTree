@@ -1,6 +1,7 @@
 
 //STD
 #include <iostream>
+#include <memory>
 
 //3RD
 #include <SFML/Graphics.hpp>
@@ -35,7 +36,7 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    Entity e(sf::Vector2f(event.mouseButton.x, event.mouseButton.y), 8);
+                    std::shared_ptr<Entity> e(new Entity(sf::Vector2f(event.mouseButton.x, event.mouseButton.y), 8));
                     quadTree.addEntity(e);
                 }
 

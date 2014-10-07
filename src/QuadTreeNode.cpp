@@ -34,9 +34,9 @@ void QuadTreeNode::drawBoundaries(sf::RenderTarget& target) const
 
 void QuadTreeNode::drawEntities(sf::RenderTarget& target) const
 {
-    for (const Entity& ent : m_entities)
+    for (const auto& ent : m_entities)
     {
-        target.draw(ent);
+        target.draw(*ent);
     }
 
     drawChildEntities(target);
@@ -49,20 +49,20 @@ void QuadTreeNode::update(float dt)
         killChildren();
     }
 
-    for (Entity& ent : m_entities)
+    for (auto& ent : m_entities)
     {
-        ent.update(dt);
+        ent->update(dt);
     }
 
-    if (m_isLeaf)
+    /*if (m_isLeaf)
     {
         m_entities.erase(
             std::remove_if(
                 m_entities.begin(),
                 m_entities.end(),
-                [this](Entity& e) //Reference: ent is lost when adding to root; Value: crashes when adding to root
+                [this](std::shared_ptr<Entity> e) //Reference: ent is lost when adding to root; Value: crashes when adding to root
                 {
-                    if (!m_boundary.contains(e.getPosition()))
+                    if (!m_boundary.contains(e->getPosition()))
                     {
                         if (m_rootNode)
                         {
@@ -77,7 +77,19 @@ void QuadTreeNode::update(float dt)
                 }
             ),
             m_entities.end()
-        );
+        );*/
+    for (auto& e : m_entities)
+    {
+        if (!m_boundary.contains(e->getPosition()))
+        {
+            if (m_rootNode)
+            {
+                //somehow this works... 20% of the time, still crashes...
+                std::cout << "Adding ent to root\n";
+                m_rootNode->addEntity(e);
+
+            }
+        }
     }
 
     if (!m_isLeaf)
@@ -89,18 +101,20 @@ void QuadTreeNode::update(float dt)
     }
 }
 
-bool QuadTreeNode::addEntity(Entity ent)
+bool QuadTreeNode::addEntity(std::shared_ptr<Entity> ent)
 {
-    std::cout << "Adding ent " << &ent << "\n";
+    std::cout << "Adding ent " << ent.get() << "\n";
 
     //Crashes here; I will sort out how I store entities in the future to stop constructing and destructing them all the time, maybe that is the issue
-    if (m_boundary.contains(ent.getPosition()))
+    if (m_boundary.contains(ent->getPosition()))
     {
+        std::cout << "contains ent\n";
         if (m_isLeaf)
         {
+            std::cout << "is leaf\n";
             if (m_maxEntities > m_entities.size())
             {
-                std::cout << "Ent added " << &ent << "\n";
+                std::cout << "Ent added " << ent.get() << "\n";
                 m_entities.push_back(ent);
                 return true;
             }
@@ -192,7 +206,7 @@ void QuadTreeNode::giveEntitiesToChildren()
 {
     if (m_isLeaf) return;
 
-    for (Entity ent : m_entities)
+    for (auto ent : m_entities)
     {
         bool success = false;
         success |= m_topLeft->addEntity(ent);

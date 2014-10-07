@@ -3,6 +3,7 @@
 
 //STD
 #include <vector>
+#include <memory>
 
 //3RD
 #include <SFML/Graphics.hpp>
@@ -20,7 +21,7 @@ public:
     void drawEntities(sf::RenderTarget& target) const;
     void update(float dt);
 
-    bool addEntity(Entity ent);
+    bool addEntity(std::shared_ptr<Entity> ent);
 
     bool isUseless();
 
@@ -45,7 +46,7 @@ private:
 
     sf::RectangleShape m_shape;
     sf::FloatRect m_boundary;
-    std::vector<Entity> m_entities;
+    std::vector<std::shared_ptr<Entity>> m_entities;
 };
 
 #endif //QUADTREENODE_HPP
