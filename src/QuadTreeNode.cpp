@@ -6,6 +6,10 @@
 QuadTreeNode::QuadTreeNode(QuadTreeNode* rootNode, sf::FloatRect boundary, unsigned maxEnts)
     : m_maxEntities(maxEnts)
     , m_isLeaf(true)
+    , m_topLeft(nullptr)
+    , m_topRight(nullptr)
+    , m_bottomLeft(nullptr)
+    , m_bottomRight(nullptr)
     , m_boundary(boundary)
 {
     if (m_rootNode == nullptr)
@@ -18,6 +22,7 @@ QuadTreeNode::QuadTreeNode(QuadTreeNode* rootNode, sf::FloatRect boundary, unsig
     m_shape.setFillColor(sf::Color::White);
     m_shape.setOutlineColor(sf::Color::Black);
     m_shape.setOutlineThickness(-1);
+    m_entities.reserve(10000);
 }
 
 QuadTreeNode::~QuadTreeNode()
@@ -44,6 +49,17 @@ void QuadTreeNode::drawEntities(sf::RenderTarget& target) const
 
 void QuadTreeNode::update(float dt)
 {
+    if (m_isLeaf && (m_topLeft || m_topRight || m_bottomLeft || m_bottomRight))
+    {
+        std::cout << "THIS SHOULD NOT HAPPEN\n";
+        sf::sleep(sf::seconds(1));
+    }
+    else if (!m_isLeaf && (!m_topLeft || !m_topRight || !m_bottomLeft || !m_bottomRight))
+    {
+        std::cout << "THIS SHOULD NOT HAPPEN 2\n";
+        sf::sleep(sf::seconds(1));
+    }
+
     if (areChildrenUseless())
     {
         killChildren();
@@ -78,13 +94,14 @@ void QuadTreeNode::update(float dt)
             ),
             m_entities.end()
         );*/
-    for (auto& e : m_entities)
+    for (auto e : m_entities)
     {
         if (!m_boundary.contains(e->getPosition()))
         {
             if (m_rootNode)
             {
-                //somehow this works... 20% of the time, still crashes...
+                //This should work, but that segfault...
+                //possibility: sf::FloatRect becomes invalid for a node at some point?
                 std::cout << "Adding ent to root\n";
                 m_rootNode->addEntity(e);
 
@@ -105,7 +122,6 @@ bool QuadTreeNode::addEntity(std::shared_ptr<Entity> ent)
 {
     std::cout << "Adding ent " << ent.get() << "\n";
 
-    //Crashes here; I will sort out how I store entities in the future to stop constructing and destructing them all the time, maybe that is the issue
     if (m_boundary.contains(ent->getPosition()))
     {
         std::cout << "contains ent\n";

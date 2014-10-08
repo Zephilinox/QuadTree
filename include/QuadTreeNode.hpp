@@ -41,8 +41,8 @@ private:
 
     QuadTreeNode* m_topLeft;
     QuadTreeNode* m_topRight;
-    QuadTreeNode* m_bottomRight;
     QuadTreeNode* m_bottomLeft;
+    QuadTreeNode* m_bottomRight;
 
     sf::RectangleShape m_shape;
     sf::FloatRect m_boundary;
