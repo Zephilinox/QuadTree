@@ -6,6 +6,7 @@
 QuadTreeNode::QuadTreeNode(QuadTreeNode* rootNode, sf::FloatRect boundary, unsigned maxEnts)
     : m_maxEntities(maxEnts)
     , m_isLeaf(true)
+    , m_rootNode(rootNode)
     , m_topLeft(nullptr)
     , m_topRight(nullptr)
     , m_bottomLeft(nullptr)
