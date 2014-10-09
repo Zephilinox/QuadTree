@@ -65,7 +65,6 @@ int main()
 
         //std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
         prevFrameTime = frameClock.restart();
-        std::cout << "\n\n";
     }
 
     return 0;

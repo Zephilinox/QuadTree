@@ -23,7 +23,7 @@ QuadTreeNode::QuadTreeNode(QuadTreeNode* rootNode, sf::FloatRect boundary, unsig
     m_shape.setFillColor(sf::Color::White);
     m_shape.setOutlineColor(sf::Color::Black);
     m_shape.setOutlineThickness(-1);
-    m_entities.reserve(10000);
+    //m_entities.reserve(10000);
 }
 
 QuadTreeNode::~QuadTreeNode()
@@ -50,41 +50,32 @@ void QuadTreeNode::drawEntities(sf::RenderTarget& target) const
 
 void QuadTreeNode::update(float dt)
 {
-    if (m_isLeaf && (m_topLeft || m_topRight || m_bottomLeft || m_bottomRight))
-    {
-        std::cout << "THIS SHOULD NOT HAPPEN\n";
-        sf::sleep(sf::seconds(1));
-    }
-    else if (!m_isLeaf && (!m_topLeft || !m_topRight || !m_bottomLeft || !m_bottomRight))
-    {
-        std::cout << "THIS SHOULD NOT HAPPEN 2\n";
-        sf::sleep(sf::seconds(1));
-    }
-
     if (areChildrenUseless())
     {
         killChildren();
     }
 
-    for (auto& ent : m_entities)
+    if (m_isLeaf)
     {
-        ent->update(dt);
-    }
-
-    /*if (m_isLeaf)
-    {
+        //Erase entity if lambda returns true, which it will do after updating each entity and checking if they are within the boundary
         m_entities.erase(
             std::remove_if(
                 m_entities.begin(),
                 m_entities.end(),
-                [this](std::shared_ptr<Entity> e) //Reference: ent is lost when adding to root; Value: crashes when adding to root
+                [this, dt](std::shared_ptr<Entity> e)
                 {
+                    e->update(dt);
+
                     if (!m_boundary.contains(e->getPosition()))
                     {
                         if (m_rootNode)
                         {
                             std::cout << "Adding ent to root\n";
-                            m_rootNode->addEntity(e); //something wrong here
+                            m_rootNode->addEntity(e);
+                        }
+                        else
+                        {
+                            std::cout << "Entity has left the root node, and thus is outside the quadtree\n";
                         }
 
                         return true;
@@ -94,23 +85,9 @@ void QuadTreeNode::update(float dt)
                 }
             ),
             m_entities.end()
-        );*/
-    for (auto e : m_entities)
-    {
-        if (!m_boundary.contains(e->getPosition()))
-        {
-            if (m_rootNode)
-            {
-                //This should work, but that segfault...
-                //possibility: sf::FloatRect becomes invalid for a node at some point?
-                std::cout << "Adding ent to root\n";
-                m_rootNode->addEntity(e);
-
-            }
-        }
+        );
     }
-
-    if (!m_isLeaf)
+    else //Not leaf, thus contains nodes
     {
         m_topLeft->update(dt);
         m_topRight->update(dt);
@@ -121,17 +98,17 @@ void QuadTreeNode::update(float dt)
 
 bool QuadTreeNode::addEntity(std::shared_ptr<Entity> ent)
 {
-    std::cout << "Adding ent " << ent.get() << "\n";
+    //std::cout << "Adding ent " << ent.get() << "\n";
 
     if (m_boundary.contains(ent->getPosition()))
     {
-        std::cout << "contains ent\n";
+        //std::cout << "contains ent\n";
         if (m_isLeaf)
         {
-            std::cout << "is leaf\n";
+            //std::cout << "is leaf\n";
             if (m_maxEntities > m_entities.size())
             {
-                std::cout << "Ent added " << ent.get() << "\n";
+                //std::cout << "Ent added " << ent.get() << "\n";
                 m_entities.push_back(ent);
                 return true;
             }
