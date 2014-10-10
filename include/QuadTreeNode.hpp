@@ -26,6 +26,7 @@ public:
     bool isUseless();
 
     void killChildren();
+
 private:
     void drawChildBoundaries(sf::RenderTarget& target) const;
     void drawChildEntities(sf::RenderTarget& target) const;

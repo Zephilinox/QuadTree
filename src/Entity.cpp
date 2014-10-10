@@ -9,12 +9,12 @@ Entity::Entity(sf::Vector2f pos, float radius)
     m_shape.setOutlineColor(sf::Color::Black);
     m_shape.setFillColor(sf::Color::Red);
 
-    m_velocity = zge::Vector::degToVector(std::rand() % 360).normalized();
+    m_velocity = zge::Vector::degToVector(std::rand() % 360);
 }
 
 Entity::~Entity()
 {
-    std::cout << "Ent Died " << this << "\n";
+    std::cout << "Ent Died [" << this << "]\n";
 }
 
 void Entity::update(float dt)

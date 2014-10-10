@@ -2,6 +2,8 @@
 //STD
 #include <iostream>
 #include <memory>
+#include <cmath>
+#include <ctime>
 
 //3RD
 #include <SFML/Graphics.hpp>
@@ -10,10 +12,10 @@
 #include "Entity.hpp"
 #include "QuadTreeNode.hpp"
 
-//Bug: so much subdivision that there is no space to store points, so they get deleted. need to set max depth and stop subdividing at that point;
-
 int main()
 {
+    std::srand(std::time(0));
+
     sf::RenderWindow window(sf::VideoMode(800, 800, 32), "QuadTree");
     window.setVerticalSyncEnabled(true);
 

@@ -6,24 +6,18 @@
 QuadTreeNode::QuadTreeNode(QuadTreeNode* rootNode, sf::FloatRect boundary, unsigned maxEnts)
     : m_maxEntities(maxEnts)
     , m_isLeaf(true)
-    , m_rootNode(rootNode)
+    , m_rootNode((rootNode ? rootNode : this))
     , m_topLeft(nullptr)
     , m_topRight(nullptr)
     , m_bottomLeft(nullptr)
     , m_bottomRight(nullptr)
     , m_boundary(boundary)
 {
-    if (m_rootNode == nullptr)
-    {
-        m_rootNode = this;
-    }
-
     m_shape.setPosition(boundary.left, boundary.top);
     m_shape.setSize(sf::Vector2f(boundary.width, boundary.height));
     m_shape.setFillColor(sf::Color::White);
     m_shape.setOutlineColor(sf::Color::Black);
     m_shape.setOutlineThickness(-1);
-    //m_entities.reserve(10000);
 }
 
 QuadTreeNode::~QuadTreeNode()
@@ -68,15 +62,7 @@ void QuadTreeNode::update(float dt)
 
                     if (!m_boundary.contains(e->getPosition()))
                     {
-                        if (m_rootNode)
-                        {
-                            std::cout << "Adding ent to root\n";
-                            m_rootNode->addEntity(e);
-                        }
-                        else
-                        {
-                            std::cout << "Entity has left the root node, and thus is outside the quadtree\n";
-                        }
+                        m_rootNode->addEntity(e);
 
                         return true;
                     }
@@ -98,23 +84,17 @@ void QuadTreeNode::update(float dt)
 
 bool QuadTreeNode::addEntity(std::shared_ptr<Entity> ent)
 {
-    //std::cout << "Adding ent " << ent.get() << "\n";
-
     if (m_boundary.contains(ent->getPosition()))
     {
-        //std::cout << "contains ent\n";
         if (m_isLeaf)
         {
-            //std::cout << "is leaf\n";
             if (m_maxEntities > m_entities.size())
             {
-                //std::cout << "Ent added " << ent.get() << "\n";
                 m_entities.push_back(ent);
                 return true;
             }
             else
             {
-                std::cout << "Spawning children\n";
                 spawnChildren();
             }
         }
@@ -126,6 +106,11 @@ bool QuadTreeNode::addEntity(std::shared_ptr<Entity> ent)
         {
             return true;
         }
+    }
+
+    if (m_rootNode == this) //As the shared_ptr is not stored anywhere, once this returns the entity will be automatically cleaned up.
+    {
+        std::cout << "Ent is not within quadtree boundaries\n";
     }
 
     return false;
@@ -202,13 +187,10 @@ void QuadTreeNode::giveEntitiesToChildren()
 
     for (auto ent : m_entities)
     {
-        bool success = false;
-        success |= m_topLeft->addEntity(ent);
-        success |= m_topRight->addEntity(ent);
-        success |= m_bottomLeft->addEntity(ent);
-        success |= m_bottomRight->addEntity(ent);
-
-        std::cout << (success ? "Ent added to children\n" : "Failed to add ent to children\n");
+        m_topLeft->addEntity(ent);
+        m_topRight->addEntity(ent);
+        m_bottomLeft->addEntity(ent);
+        m_bottomRight->addEntity(ent);
     }
 
     m_entities.clear();
